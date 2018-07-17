@@ -43,7 +43,11 @@ class Convolution(object):
             self._logits = tf.matmul(self._fc3, self._W4)
             self._output = tf.nn.softmax(self._logits)
 
+    def feed_forward(self, input):
+        pass
 
+    def gradient_descent(self, y):
+        pass
 
 class Q_learning_model(object):
 
@@ -53,3 +57,43 @@ class Q_learning_model(object):
         self.phi = phi
         self._feature = map(self.phi, state_elements)
 
+        self._memory = []
+        self._Q = Convolution(action_number=5)
+
+        # number of total episodes to go through
+        self._M = 10
+        self._epsilon = 0
+        self._gamma = 0
+
+    def train(self):
+
+        for episode in range(1, self._M):
+            sequence = self.initialize_sequence()
+            features = self.phi(s)
+
+            total_time_step = 0
+
+            for time_step in range(1, total_time_step + 1):
+                action = self.epsilon_greedy()
+                reward, next_state = self.step(action)
+
+                next_sequence = [sequence, action, next_state]
+                next_features = self.phi(sequence)
+                self._memory.append((features, action, reward, next_features))
+
+                mini_batch = np.random.choice(self._memory)
+                reward_j = mini_batch[2]
+                features_j_plus_1 = mini_batch[3]
+                y_j = reward_j if TERMINAL else reward_j + self._gamma * np.amax(self._Q.feed_forward(features_j_plus_1))
+
+                self._Q.gradient_descent(y_j)
+
+
+    def initialize_sequence(self):
+        pass
+
+    def epsilon_greedy(self):
+        pass
+
+    def step(self, action):
+        pass
