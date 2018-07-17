@@ -10,6 +10,7 @@ class Convolution(object):
         self._action_number = action_number
 
         self.build_conv_net()
+        self._sess = tf.Session()
 
     def build_conv_net(self):
 
@@ -42,12 +43,22 @@ class Convolution(object):
             self._b4 = tf.get_variable(name="bias", shape=[1, self._action_number])
             self._logits = tf.matmul(self._fc3, self._W4)
             self._output = tf.nn.softmax(self._logits)
+            self._target = tf.placeholder(tf.float32, tf.shape(self._output))
+
+        self._optimize = tf.train.AdamOptimizer().minimize(loss=tf.losses.mean_squared_error(self._target, self._output))
 
     def feed_forward(self, input):
-        pass
 
-    def gradient_descent(self, y):
-        pass
+        with self._sess as sess:
+            return sess.run(self._output, feed_dict={self._input : input})
+
+    def gradient_descent(self, target, input):
+
+        with self._sess as sess:
+            sess.run(self._optimize, feed_dict={self._input: input
+                                                self._target: target})
+
+
 
 class Q_learning_model(object):
 
@@ -55,7 +66,7 @@ class Q_learning_model(object):
         """state_elements is a list of elements that would adequately describe a state"""
 
         self.phi = phi
-        self._feature = map(self.phi, state_elements)
+        self._feature = list(map(self.phi, state_elements))
 
         self._memory = []
         self._Q = Convolution(action_number=5)
@@ -69,7 +80,7 @@ class Q_learning_model(object):
 
         for episode in range(1, self._M):
             sequence = self.initialize_sequence()
-            features = self.phi(s)
+            features = self.phi(sequence)
 
             total_time_step = 0
 
@@ -82,18 +93,53 @@ class Q_learning_model(object):
                 self._memory.append((features, action, reward, next_features))
 
                 mini_batch = np.random.choice(self._memory)
-                reward_j = mini_batch[2]
-                features_j_plus_1 = mini_batch[3]
+
+                features_j, action_j, reward_j, features_j_plus_1,  = mini_batch
                 y_j = reward_j if TERMINAL else reward_j + self._gamma * np.amax(self._Q.feed_forward(features_j_plus_1))
 
                 self._Q.gradient_descent(y_j)
 
 
     def initialize_sequence(self):
-        pass
+
 
     def epsilon_greedy(self):
         pass
 
     def step(self, action):
-        pass
+
+        if action == 0:
+            reward = 1
+
+        return reward, next_state
+
+
+class State(object):
+
+    def __init__(self):
+
+        self._dealer_sum = 0
+        self._player_sum = 0
+        self._player_first_card = 0
+
+
+class Environment(object):
+
+    def draw_card(self):
+
+        return np.random.randint(1, 10)
+
+    def step(self, state, action):
+
+        if action == 0:
+
+            if state._dealer_sum < 17:
+
+                state._dealer_sum +=
+
+
+
+        elif action == 1:
+
+
+
